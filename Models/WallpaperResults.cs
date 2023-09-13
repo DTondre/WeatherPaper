@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace WeatherPaper.Models
 {
-    public class CurrentWeather
+    public class WallpaperResults
     {
-        public float temperature { get; set; }
-        public int is_day {  get; set; }
+        public IEnumerable<Wallpaper> data { get; set; }
     }
 }

@@ -11,5 +11,7 @@ namespace WeatherPaper
         public const string weatherCurrentWeather = "&current_weather=true";
         public const string weatherBaseUri = "https://api.open-meteo.com/v1/";
         public const string weatherForecastRequest = "forecast";
+
+        public const string wallpaperBaseUri = "https://wallhaven.cc/api/v1/search";
     }
 }

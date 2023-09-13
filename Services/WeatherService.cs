@@ -10,31 +10,27 @@ using WeatherPaper.Models;
 namespace WeatherPaper.Services
 {
     public class WeatherService
-
     {
         private static readonly HttpClient _client = new HttpClient()
         {
-            BaseAddress = new Uri("https://api.open-meteo.com/v1/")
+            BaseAddress = new Uri(Constants.weatherBaseUri)
         };
         static readonly WindowsService _windowsService = new WindowsService();
 
-        public async Task<string> GetWeatherInfoAsync()
+        public static async Task<Forecast> GetWeatherInfoAsync()
         {
-            WebRequest request = WebRequest.Create(await Request());
-            HttpWebResponse response;
-            response = (HttpWebResponse)request.GetResponse();
-
             string result = null;
-            using (Stream stream = response.GetResponseStream())
+
+            var response = await _client.GetAsync(await Request());
+
+            using (response)
             {
-                StreamReader sr = new StreamReader(stream);
+                StreamReader sr = new StreamReader(response.Content.ReadAsStream());
                 result = sr.ReadToEnd();
                 Console.Write(result);
             }
 
-            Forecast? forecast = JsonSerializer.Deserialize<Forecast>(result);
-
-            return result;
+            return JsonSerializer.Deserialize<Forecast>(result);
         }
 
         static async Task<String> GetLocationStringAsync()
@@ -46,11 +42,11 @@ namespace WeatherPaper.Services
             return ($"?latitude={latitude}&longitude={longitude}");
         }
 
-        static async Task<string> Request()
+        static async Task<Uri> Request()
         {
             var location = await GetLocationStringAsync();
 
-            return String.Format(Constants.weatherBaseUri + Constants.weatherForecastRequest + location + Constants.weatherCurrentWeather);
+            return new Uri(Constants.weatherBaseUri + Constants.weatherForecastRequest + location + Constants.weatherCurrentWeather);
         }
     }
 }

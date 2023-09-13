@@ -4,16 +4,21 @@ namespace WeatherPaper
 {
     public partial class MainPage : ContentPage
     {
-        readonly WeatherService _weatherService = new();
-
         public MainPage()
         {
             InitializeComponent();
         }
 
-        private async void OnCounterClicked(object sender, EventArgs e)
+        private async void OnButtonClicked(object sender, EventArgs e)
         {
-            DisplayLabel.Text = await _weatherService.GetWeatherInfoAsync();
+            var results = await WeatherService.GetWeatherInfoAsync();
+
+            var IsDay = results.current_weather.is_day != 0 ? "day" : "night";
+
+            TemperatureLabel.Text = $"It is currently {results.current_weather.temperature} degrees celsius.";
+            IsDayLabel.Text = $"It is currently {IsDay}.";
+
+            await WallpaperService.ChangeWallpaperAsync();
         }
     }
 }
