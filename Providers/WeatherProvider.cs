@@ -6,18 +6,19 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WeatherPaper.Models;
+using WeatherPaper.Providers.Interfaces;
 
 namespace WeatherPaper.Services
 {
-    public class WeatherService
+    public class WeatherProvider : IWeatherProvider
     {
         private static readonly HttpClient _client = new HttpClient()
         {
             BaseAddress = new Uri(Constants.weatherBaseUri)
         };
-        static readonly WindowsService _windowsService = new WindowsService();
+        static readonly WindowsProvider _windowsService = new WindowsProvider();
 
-        public static async Task<Forecast> GetWeatherInfoAsync()
+        public async Task<Forecast> GetWeatherInfoAsync()
         {
             string result = null;
 
@@ -33,7 +34,7 @@ namespace WeatherPaper.Services
             return JsonSerializer.Deserialize<Forecast>(result);
         }
 
-        static async Task<String> GetLocationStringAsync()
+        private static async Task<string> GetLocationStringAsync()
         {
             var location = await _windowsService.GetCurrentLocationAsync();
             var latitude = location.Latitude.ToString();
@@ -42,7 +43,7 @@ namespace WeatherPaper.Services
             return ($"?latitude={latitude}&longitude={longitude}");
         }
 
-        static async Task<Uri> Request()
+        private static async Task<Uri> Request()
         {
             var location = await GetLocationStringAsync();
 

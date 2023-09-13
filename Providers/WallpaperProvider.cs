@@ -10,12 +10,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WeatherPaper.Models;
+using WeatherPaper.Providers.Interfaces;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 
 namespace WeatherPaper.Services
 {
-    public class WallpaperService
+    public class WallpaperProvider : IWallpaperProvider
     {
         private static readonly HttpClient _client = new HttpClient()
         {
@@ -23,14 +24,7 @@ namespace WeatherPaper.Services
 
         };
 
-        public static async Task ChangeWallpaperAsync()
-        {
-            var wallpaperPath = await GetWallpaperAsync();
-
-            WindowsService.SetWallpaperAsync(Style.Stretched);
-        }
-
-        public static async Task<string> GetWallpaperAsync()
+        public async Task<string> GetWallpaperAsync()
         {
             string result = null;
 
@@ -49,14 +43,15 @@ namespace WeatherPaper.Services
             var uri = new Uri(url);
             var fileName = url[(url.LastIndexOf('-') + 1)..];
 
+
             StorageFolder storageFolder = ApplicationData.Current.LocalFolder;
+
 
             var httpResult = await _client.GetAsync(uri);
             using var resultStream = await httpResult.Content.ReadAsStreamAsync();
             using var fileStream = File.Create(storageFolder.Path + "\\" + fileName);
             resultStream.CopyTo(fileStream);
 
-            
             return storageFolder.Path + "\\" + fileName;
         }
     }
