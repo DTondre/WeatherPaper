@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WeatherPaper.Providers.Interfaces
+namespace WeatherPaper.Models
 {
-    public interface IWindowsProvider
+    public class ImageSearch
     {
-        Task SetWallpaperAsync(string imgPath);
+        public IEnumerable<Results> results { get; set; }
     }
 }

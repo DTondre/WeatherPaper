@@ -1,25 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Maui.Devices;
-using Microsoft.Win32;
-using WeatherPaper.Providers.Interfaces;
+﻿using WeatherPaper.Services.Interfaces;
 using Windows.Storage;
 using Windows.System.UserProfile;
 
 namespace WeatherPaper.Services
 {
-    public class WindowsProvider : IWindowsProvider
+    public class WindowsService : IWindowsService
     {
         private CancellationTokenSource _cancelTokenSource;
         private bool _isCheckingLocation = false;
         private bool _isUpdatingWallpaper = false;
 
-        public async Task<Location> GetCurrentLocationAsync()
+        public Location GetCurrentLocationAsync()
         {
             Location location = new();
 
@@ -30,7 +21,10 @@ namespace WeatherPaper.Services
                 GeolocationRequest request = new(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(10));
                 _cancelTokenSource = new CancellationTokenSource();
 
-                location = await Geolocation.Default.GetLocationAsync(request, _cancelTokenSource.Token);
+                MainThread.BeginInvokeOnMainThread(async () =>
+                {
+                    await Geolocation.Default.GetLocationAsync(request, _cancelTokenSource.Token);
+                });
 
                 _isCheckingLocation = false;
             }
@@ -39,14 +33,17 @@ namespace WeatherPaper.Services
 
         public async Task SetWallpaperAsync(string imgPath)
         {
-            _isUpdatingWallpaper = true;
+            if (!_isUpdatingWallpaper)
+            {
+                _isUpdatingWallpaper = true;
 
-            StorageFile file = await StorageFile.GetFileFromPathAsync(imgPath);
+                StorageFile file = await StorageFile.GetFileFromPathAsync(imgPath);
 
-            UserProfilePersonalizationSettings profileSettings = UserProfilePersonalizationSettings.Current;
-            await profileSettings.TrySetWallpaperImageAsync(file);
+                UserProfilePersonalizationSettings profileSettings = UserProfilePersonalizationSettings.Current;
+                await profileSettings.TrySetWallpaperImageAsync(file);
 
-            _isUpdatingWallpaper = false;
+                _isUpdatingWallpaper = false;
+            }
         }
 
         public void CancelRequest()

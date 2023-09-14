@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WeatherPaper.Providers.Interfaces
+namespace WeatherPaper.Models
 {
-    public interface IWallpaperProvider
+    public class Urls
     {
-        Task<string> GetWallpaperAsync();
+        public string raw {  get; set; }
     }
 }

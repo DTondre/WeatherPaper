@@ -1,23 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WeatherPaper.Providers.Interfaces;
+﻿using System.Diagnostics;
+using System.Timers;
+using WeatherPaper.Services.Interfaces;
 using WeatherPaper.Services;
 
 namespace WeatherPaper
 {
     public class Updater
     {
-        private readonly IWallpaperProvider _wallpaperProvider = new WallpaperProvider();
-        private readonly IWeatherProvider _weatherProvider = new WeatherProvider();
-        private readonly IWindowsProvider _windowsProvider = new WindowsProvider();
+        private static System.Timers.Timer _updateTimer;
+        private static string _lastImgPath;
+        private static bool _isUpdating = false;
 
-        public async void UpdateWallpaperAsync()
+        private static readonly IWallpaperService _wallpaperProvider = new WallpaperService();
+        private static readonly IWeatherService _weatherProvider = new WeatherService();
+        private static readonly IWindowsService _windowsProvider = new WindowsService();
+        
+        public Updater()
         {
-            var imgPath = await _wallpaperProvider.GetWallpaperAsync();
-            await _windowsProvider.SetWallpaperAsync(imgPath);
+            UpdateWallpaperAsync();
+            SetTimer();
+        }
+
+        private static void SetTimer()
+        {
+            _updateTimer = new System.Timers.Timer(TimeSpan.FromSeconds(60));
+
+            _updateTimer.Elapsed += OnTimedEvent;
+            _updateTimer.AutoReset = false;
+            _updateTimer.Enabled = true;
+        }
+
+        private static void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            UpdateWallpaperAsync();
+            Debug.WriteLine($"Updated wallpaper at {DateTime.Now}");
+            SetTimer();
+        }
+
+        private static async void UpdateWallpaperAsync()
+        {
+            if (!_isUpdating)
+            {
+                _isUpdating = true;
+                var weatherInfo = await _weatherProvider.GetWeatherInfoAsync();
+                var imgPath = await _wallpaperProvider.GetWallpaperAsync(weatherInfo);
+                await _windowsProvider.SetWallpaperAsync(imgPath);
+
+                if (_lastImgPath != null && File.Exists(_lastImgPath))
+                {
+                    File.Delete(_lastImgPath);
+                }
+                _lastImgPath = imgPath;
+                _isUpdating = false;
+            }
         }
     }
 }

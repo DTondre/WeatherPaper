@@ -1,28 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using WeatherPaper.Models;
-using WeatherPaper.Providers.Interfaces;
+using WeatherPaper.Services.Interfaces;
 
 namespace WeatherPaper.Services
 {
-    public class WeatherProvider : IWeatherProvider
+    public class WeatherService : IWeatherService
     {
         private static readonly HttpClient _client = new HttpClient()
         {
             BaseAddress = new Uri(Constants.weatherBaseUri)
         };
-        static readonly WindowsProvider _windowsService = new WindowsProvider();
+        static readonly WindowsService _windowsService = new WindowsService();
 
         public async Task<Forecast> GetWeatherInfoAsync()
         {
             string result = null;
 
-            var response = await _client.GetAsync(await Request());
+            var response = await _client.GetAsync(Request());
 
             using (response)
             {
@@ -34,20 +28,20 @@ namespace WeatherPaper.Services
             return JsonSerializer.Deserialize<Forecast>(result);
         }
 
-        private static async Task<string> GetLocationStringAsync()
+        private static string GetLocationStringAsync()
         {
-            var location = await _windowsService.GetCurrentLocationAsync();
+            var location = _windowsService.GetCurrentLocationAsync();
             var latitude = location.Latitude.ToString();
             var longitude = location.Longitude.ToString();
 
             return ($"?latitude={latitude}&longitude={longitude}");
         }
 
-        private static async Task<Uri> Request()
+        private static Uri Request()
         {
-            var location = await GetLocationStringAsync();
+            var location = GetLocationStringAsync();
 
-            return new Uri(Constants.weatherBaseUri + Constants.weatherForecastRequest + location + Constants.weatherCurrentWeather);
+            return new Uri(Constants.weatherBaseUri + Constants.weatherForecastRequest + location + Constants.weatherCurrentWeather + "&daily=sunrise,sunset" + "&timezone=auto");
         }
     }
 }
